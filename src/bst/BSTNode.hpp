@@ -1,5 +1,11 @@
 /**
- * TODO: add file header
+ * Name: Rickesh Khilnani
+ * Email: rikhilna@ucsd.edu
+ * 
+ * The purpose of the BSTNode file is to create elements in a binary search
+ * tree data structure. BSTNode assigns parent and children references to
+ * each node, if applicable. BSTNode aids BSTIterator.hpp and BST.hpp for
+ * complete implementation of a binary search tree.
  */
 #ifndef BSTNODE_HPP
 #define BSTNODE_HPP
@@ -8,7 +14,10 @@
 using namespace std;
 
 /**
- * TODO: add class header
+ * The BSTNode class instantiated a singular node with a private data 
+ * variable, and public left, right, and parent pointers. Includes
+ * the successor() method which dictates the functionality of the
+ * pre-increment operator in BSTIterator.	
  */
 template <typename Data>
 class BSTNode {
@@ -20,8 +29,13 @@ class BSTNode {
     BSTNode<Data>* right;
     BSTNode<Data>* parent;
 
-    /** TODO */
-    BSTNode(const Data& d) : data(d) {}
+    /** Initializes a node with given data, with no parent or children */
+    BSTNode(const Data& d) : data(d) {
+        this->left = nullptr;
+        this->right = nullptr;
+        this->parent = nullptr;
+        //TODO NEED TO TEST
+    }
 
     /** Set the value of data */
     void setData(const Data& d) { data = d; }
@@ -29,8 +43,13 @@ class BSTNode {
     /** Get the value of data */
     Data getData() { return data; }
 
-    /** TODO */
-    BSTNode<Data>* successor() { return 0; }
+    /** Returns the successor of this BSTNode. This is the smallest
+     *  element that is larger than this BSTNode
+     */
+    BSTNode<Data>* successor() { 
+        return this->parent;
+        //TODO NEED TO TEST
+    }
 };
 
 /**
