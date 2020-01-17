@@ -30,12 +30,7 @@ class BSTNode {
     BSTNode<Data>* parent;
 
     /** Initializes a node with given data, with no parent or children */
-    BSTNode(const Data& d) : data(d) {
-        this->left = nullptr;
-        this->right = nullptr;
-        this->parent = nullptr;
-        //TODO NEED TO TEST
-    }
+    BSTNode(const Data& d) : data(d), left(0), right(0), parent(0) {}
 
     /** Set the value of data */
     void setData(const Data& d) { data = d; }
@@ -43,12 +38,49 @@ class BSTNode {
     /** Get the value of data */
     Data getData() { return data; }
 
-    /** Returns the successor of this BSTNode. This is the smallest
-     *  element that is larger than this BSTNode
+    /** 
+     * Returns the successor of this BSTNode. This is the smallest
+     * element that is larger than the data key of this BSTNode
      */
-    BSTNode<Data>* successor() { 
-        return this->parent;
-        //TODO NEED TO TEST
+    BSTNode<Data>* successor() {
+        BSTNode<Data>* succFind;
+        BSTNode<Data>* returnNode;
+        // Goes down to the immediate right node and as far left as it can go
+        if (right != nullptr) {
+            succFind = right->left;
+            // Used as an iterator to find the successor
+            if (succFind != nullptr) {
+                returnNode = succFind;
+                // Will constantly update the return node until null is hit
+                while (succFind != nullptr) {
+                    returnNode = succFind;
+                    succFind = succFind->left;
+                }
+                return returnNode;
+            } else
+                return right;
+        } else if (parent != nullptr) {
+            // Checks if the current node is a left child
+            if (getData() < parent->getData())
+                return parent;
+            else {
+                succFind = parent;
+                // Will find a parent that is higher up in the tree that is
+                // larger than itself
+                while (succFind != nullptr && 
+                       succFind->getData() < getData()) {
+                    returnNode = succFind;
+                    succFind = succFind->parent;
+                }
+                if (succFind != nullptr && getData() < succFind->getData())
+                    return succFind;
+                // If no such parent exists, return null
+                else if (returnNode->getData() < getData())
+                    return nullptr;
+                return returnNode;
+            }
+        } else
+            return nullptr;
     }
 };
 

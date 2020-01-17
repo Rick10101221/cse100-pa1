@@ -17,6 +17,8 @@ using namespace testing;
 TEST(BSTTests, EMPTY_TREE_HEIGHT_TEST) {
     BST<int> bst;
     ASSERT_EQ(bst.height(), -1);
+    ASSERT_EQ(bst.size(), 0);
+    ASSERT_TRUE(bst.empty());
 }
 
 /* Small BST test starts here */
@@ -48,6 +50,17 @@ class SmallBSTFixture : public ::testing::Test {
     // void SetUp() {}
 };
 
+TEST_F(SmallBSTFixture, INORDER_TEST) {
+    vector<int> vec1 = bst.inorder();
+    vector<int> vec2 = {-33, 1, 3, 4, 100};
+    ASSERT_EQ(vec1, vec2);
+    ASSERT_FALSE(bst.empty());
+}
+
+TEST_F(SmallBSTFixture, SMALL_FIND_TEST) {
+    ASSERT_EQ(*bst.find(3), 3); 
+}
+
 TEST_F(SmallBSTFixture, SMALL_SIZE_TEST) {
     // assert that the small BST has the correct size
     ASSERT_EQ(bst.size(), 5);
@@ -58,4 +71,45 @@ TEST_F(SmallBSTFixture, SMALL_INSERT_DUPLICATES_TEST) {
     ASSERT_FALSE(bst.insert(3));
 }
 
-// TODO: add more BST tests here
+TEST_F(SmallBSTFixture, SMALL_HEIGHT_TEST) {
+    ASSERT_EQ(bst.height(), 2);
+}
+
+TEST_F(SmallBSTFixture, SMALL_INSERT) {
+    ASSERT_TRUE(bst.insert(2));
+}
+
+TEST_F(SmallBSTFixture, OMEGA_INSERT) {
+    ASSERT_FALSE(bst.insert(-33));
+    ASSERT_TRUE(bst.insert(-20));
+    ASSERT_TRUE(bst.insert(-30));
+    ASSERT_TRUE(bst.insert(-15));
+    ASSERT_EQ(*bst.begin(), -33);
+    ASSERT_TRUE(bst.insert(-509));
+    ASSERT_TRUE(bst.insert(-250));
+    ASSERT_TRUE(bst.insert(-240));
+    ASSERT_TRUE(bst.insert(-245));
+    ASSERT_EQ(*bst.begin(), -509);
+    ASSERT_FALSE(bst.insert(-30));
+    ASSERT_EQ(bst.height(), 6);
+}
+
+TEST(BSTNEW, ALL_YESSUH) {
+    BST<int> bst;
+    ASSERT_TRUE(bst.insert(3));
+    ASSERT_TRUE(bst.insert(1));
+    ASSERT_TRUE(bst.insert(-33));
+    ASSERT_TRUE(bst.insert(4));
+    ASSERT_TRUE(bst.insert(100));
+    ASSERT_EQ(bst.size(), 5);
+    ASSERT_EQ(bst.height(), 2);
+    ASSERT_EQ(*bst.find(3), 3);
+    ASSERT_EQ(*bst.find(1), 1);
+    ASSERT_EQ(*bst.find(-33), -33);
+    ASSERT_EQ(*bst.find(4), 4);
+    ASSERT_EQ(*bst.find(100), 100);
+    
+    vector<int> vec1 = bst.inorder();
+    vector<int> vec2 = {-33, 1, 3, 4, 100};
+    ASSERT_EQ(vec1, vec2);
+}
