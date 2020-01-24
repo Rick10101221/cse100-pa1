@@ -29,10 +29,16 @@ class BSTNode {
     BSTNode<Data>* right;
     BSTNode<Data>* parent;
 
-    /** Initializes a node with given data, with no parent or children */
+    /** 
+     * Initializes a node with given data, with no parent or children
+     * Parameters: d - the data that the Node is initialized with
+     */
     BSTNode(const Data& d) : data(d), left(0), right(0), parent(0) {}
 
-    /** Set the value of data */
+    /** 
+     * Set the value of data
+     * Parameters: d - the new data that this node is assigned
+     */
     void setData(const Data& d) { data = d; }
 
     /** Get the value of data */
@@ -43,6 +49,8 @@ class BSTNode {
      * element that is larger than the data key of this BSTNode
      */
     BSTNode<Data>* successor() {
+        if (right == 0 && left == 0 && parent == 0)
+            return nullptr;
         BSTNode<Data>* succFind;
         BSTNode<Data>* returnNode;
         // Goes down to the immediate right node and as far left as it can go

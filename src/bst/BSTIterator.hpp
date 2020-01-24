@@ -31,11 +31,14 @@ class BSTIterator : public iterator<input_iterator_tag, Data> {
     /**
      * Constructor that initialize the current BSTNode
      * in this BSTIterator.
+     * Parameters: curr - the pointer to a node that the iterator will contain
      */
     BSTIterator(BSTNode<Data>* curr) : curr(curr) {}
 
     /** Dereference operator. */
-    Data operator*() const { return curr->getData(); }
+    Data operator*() const { 
+        return curr->getData();
+    }
 
     /** Pre-increment operator. */
     BSTIterator<Data>& operator++() {

@@ -50,8 +50,26 @@ class BST {
      */
     BST() : root(0), isize(0), iheight(-1) {}
 
-    /** */
-    BST(const BST<Data>& bst) : root(0), isize(0), iheight(-1) {}
+    /**
+     * Used as a copy constructor that will create a balanced BST out
+     * of the given bst. The given bst is not altered, but only copied.
+     * Parameter: bst - the bst to copy
+     */
+    BST(const BST<Data>& bst) : root(0), isize(0), iheight(-1) {
+        if (bst.empty()) {
+            BST();
+        }
+        vector<Data> vec;
+        // Puts all of the elements from given bst in inorder in a vector
+        iterator iter( bst.begin() );
+        while ( iter != end() ) {
+            vec.push_back( *iter );
+            iter++;
+        }
+        isize = bst.size();
+        root = buildSubtree(vec, 0, bst.size(), 0);
+        iheight = checkHeight(root) - 1;
+    }
 
     /** Default destructor. Delete every node in this BST. */
     ~BST() { 
@@ -71,8 +89,8 @@ class BST {
             iheight++;
             return true;
         }
-      
-        if (find(item) != nullptr)
+     
+        if (find(item) != end())
             return false;
           
         int heightToRecord = 0;
@@ -91,8 +109,9 @@ class BST {
                     testingNode->left = newNode;
                     isize++;
                     heightToRecord++;
-                    if (heightToRecord > iheight)
+                    if (heightToRecord > iheight) {
                         iheight = heightToRecord;
+                    }
                     return true;
                 }
                 testingNode = testingNode->left;
@@ -103,8 +122,9 @@ class BST {
                     testingNode->right = newNode;
                     isize++;
                     heightToRecord++;
-                    if (heightToRecord > iheight)
+                    if (heightToRecord > iheight) {
                         iheight = heightToRecord;
+                    }
                     return true;
                 }
                 testingNode = testingNode->right;
@@ -121,38 +141,100 @@ class BST {
      */
     iterator find(const Data& item) const {
         if (empty())
-          return NULL;
+            return end();
 
-        BSTNode<Data>* testingNode = root;
-        // While testingNode is not null
-        while (testingNode != nullptr && (item < testingNode->getData() ||
-               testingNode->getData() < item)) {
-            // If item is less than the current node, go the left subtree
-            // else go to the right
-            if (item < testingNode->getData())
-                testingNode = testingNode->left;
-            else
-                testingNode = testingNode->right;
-        }
-
-        iterator iter(testingNode);
+        iterator iter( findNodeHelper(root, item) );
         return iter;
     }
 
-    /** */
-    bool deleteNode(const Data& item) { return false; }
+    /** 
+     * Deletes a node with the given data. If no data is found, return false
+     * Parameter: item - the data to delete in the bst
+     */
+    bool deleteNode(const Data& item) {
+        // If the item is not found, return false
+        if ( find(item) == end() )
+            return false;
+
+        // Finds the node to delete and creates a pointer to it
+        BSTNode<Data>* nodeToDelete = findNodeHelper(root, item);
+        // Whether or not the node has a left or right child or a parent node
+        bool hasLeft = nodeToDelete->left != 0;
+        bool hasRight = nodeToDelete->right != 0;
+        bool hasParent = nodeToDelete->parent != 0;
+        // If the node to delete is a right child of its parent or a left
+        bool ifParentsRight = false;
+        bool ifParentsLeft = false;
+        // Set the respective bool true if the node has a parent at all
+        if (hasParent) {
+            ifParentsRight = nodeToDelete->parent->right == nodeToDelete;
+            ifParentsLeft = nodeToDelete->parent->left == nodeToDelete;
+        }
+
+        // If the node doesn't have children
+        if ( !hasLeft && !hasRight ) {
+            // Checks if node to delete is root
+            if (hasParent) {
+                // "Cuts" the node to delete out of the bst
+                if ( ifParentsRight )
+                    nodeToDelete->parent->right = 0;
+                else if ( ifParentsLeft )
+                    nodeToDelete->parent->left = 0;
+            }
+        // If the node has a left child, but not a right
+        } else if ( hasLeft && !hasRight ) {
+            if (hasParent) {
+                if ( ifParentsRight )
+                    nodeToDelete->parent->right = nodeToDelete->left;
+                else
+                    nodeToDelete->parent->left = nodeToDelete->left;
+                nodeToDelete->left->parent = nodeToDelete->parent;
+            } else
+                root = nodeToDelete->left;
+            delete nodeToDelete;
+        // If the node has a right child, but not a left
+        } else if ( !hasLeft && hasRight ) {
+            if (hasParent) {
+                if ( ifParentsRight )
+                    nodeToDelete->parent->right = nodeToDelete->right;
+                else
+                    nodeToDelete->parent->left = nodeToDelete->right;
+                nodeToDelete->right->parent = nodeToDelete->parent;
+            } else
+                root = nodeToDelete->right;
+            delete nodeToDelete;
+        // If the node has two children
+        } else {
+            // Updates current node to the successor's data and calls
+            // deleteNode on the successor until the successor is a
+            // leaf node
+            Data succData = nodeToDelete->successor()->getData();
+            deleteNode( succData );
+            isize++;
+            nodeToDelete->setData( succData );
+        }
+        iheight = checkHeight(root) - 1;
+        isize--;
+        return true;         
+    }
 
     /** Returns the number of items currently in the BST. */
     unsigned int size() const { return isize; }
 
     /** Returns the height of the BST */
-    int height() const { return iheight; }
+    int height() const { 
+        if (empty())
+            return -1;
+        return iheight;
+    }
 
     /** Returns true if the BST is empty, else false */
     bool empty() const { return isize == 0; }
 
     /** Returns an iterator pointing to the first item in the BST. */
     iterator begin() const {
+        if (empty())
+            return end();
         iterator iter(first(root));
         return iter;
     }
@@ -217,14 +299,50 @@ class BST {
     }
 
   private:
+
+    /**
+     * Finds a node with the given Data and returns a pointer to it
+     * Parameters: root - the root node of the bst to work off of
+     *             item - the data to find in the bst
+     */
+    BSTNode<Data>* findNodeHelper(BSTNode<Data>* root, 
+                                  const Data& item) const { 
+        BSTNode<Data>* testingNode = root;
+        // While testingNode is not null
+        while (testingNode != 0 && (item < testingNode->getData() ||
+               testingNode->getData() < item)) {
+            // If item is less than the current node, go the left subtree
+            // else go to the right
+            if (item < testingNode->getData())
+                testingNode = testingNode->left;
+            else
+                testingNode = testingNode->right;
+        }
+        return testingNode;
+    }
+
+    /**
+     * Runs through the bst and updates height
+     * Parameters: root - the pointer to the parent node so that the
+     *                    children's height can be checked
+     */
+    int checkHeight(BSTNode<Data>* root) {
+        if (root == 0) return 0;
+        int left_height = checkHeight(root->left);
+        int right_height = checkHeight(root->right);
+        if (left_height > right_height)
+            return left_height + 1;
+        return right_height + 1;
+    }
+
     /** 
      * Helper function for inorder() 
      * Parameters: curr - The pointer to the node that the inorder traversal
-                          will be performed on
-                   v - The vector that will store the Data of the nodes
+     *                    will be performed on
+     *             v - The vector that will store the Data of the nodes
      */
     void inorderHelper(BSTNode<Data>* curr, vector<Data> &v) const {
-        if (curr == nullptr)
+        if (curr == 0)
             return;
         else {
             inorderHelper(curr->left, v);
@@ -239,12 +357,17 @@ class BST {
      */
     BSTNode<Data>* first(BSTNode<Data>* root) const{
         BSTNode<Data>* testingNode = root;
-        while (testingNode->left != nullptr)
+        while (testingNode->left != 0)
             testingNode = testingNode->left;
         return testingNode;
     }
 
-    /** Recursively deletes all of the nodes in the BST. */
+    /** 
+     * Recursively deletes all of the nodes in the BST.
+     * Parameters: n - the pointer to the node whos left subtree will
+     *                 be deleted, then the node itself, and then the
+     *                 right subtree
+     */
     void deleteAll(BSTNode<Data>* n) {
         /* Pseudocode:
            if current node is null: return;
@@ -252,22 +375,46 @@ class BST {
            recursively delete right sub-tree
            delete current node
         */
-        if (n == NULL)
+        if (n == 0)
             return;
-        if (n->left != NULL)
+        if (n->left != 0)
             deleteAll(n->left);
-        if (n->right != NULL)
+        if (n->right != 0)
             deleteAll(n->right);
         delete n;
     }
 
-    /** */
+    /**
+     * Builds a balanced subtree given a vector, and a start and end position
+     * in the vector (the start is inclusive and the end is exclusive)
+     * Parameters: data - the vector which contains the elements in inorder
+     *                    traversal
+     *             start - the starting index in the data vector to build
+     *             end - the ending index in the data vector to build
+     *             depth - not used
+     */
     BSTNode<Data>* buildSubtree(vector<Data>& data, int start, int end,
                                 int depth) {
-        return 0;
-    }
+        if (start == end)
+            return 0;
 
-    // Add more helper functions below
+        short medianDivider = 2;
+        int median = ( start + end ) / medianDivider;
+        BSTNode<Data>* medianNode = new BSTNode<Data>( data.at(median) );
+  
+        BSTNode<Data>* leftChild = buildSubtree(data, start, median, depth);
+        int afterMedian = median + 1;
+        BSTNode<Data>* rightChild = buildSubtree(data, afterMedian, 
+                                                 end, depth);
+        medianNode->left = leftChild;
+        medianNode->right = rightChild;
+        if ( medianNode->left != 0 )
+            medianNode->left->parent = medianNode;
+        if ( medianNode->right != 0 )
+            medianNode->right->parent = medianNode;
+
+        return medianNode;
+    }
 };
 
 #endif  // BST_HPP
